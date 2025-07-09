@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>最近做错的20道题</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body { background: #f6faff; }
+        .container { max-width: 900px; margin: 40px auto 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 4px 32px rgba(45,140,240,0.10); padding: 36px 36px 32px 36px; }
+        h1 { text-align: center; color: #ff4d4f; margin-bottom: 18px; font-size: 2.2rem; font-weight: 800; letter-spacing: 2px; }
+        .question { background: #fafdff; border-radius: 14px; box-shadow: 0 2px 8px rgba(45,140,240,0.06); margin-bottom: 36px; padding: 26px 32px 18px 32px; }
+        .question > div { margin-bottom: 12px; font-size: 1.13rem; }
+        .correct { color: #52c41a; font-weight: bold; font-size: 1.1rem; }
+        .wrong { color: #ff4d4f; font-weight: bold; font-size: 1.1rem; }
+        .result-status-minimal { margin-top: 18px; margin-bottom: 2px; display: flex; align-items: center; font-size: 1.35rem; font-weight: bold; letter-spacing: 1px; color: #52c41a; }
+        .result-status-minimal.wrong { color: #ff4d4f; }
+        .result-status-minimal .icon { font-size: 1.7rem; margin-right: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>最近做错的20道题</h1>
+        {% for q in questions %}
+        <div class="question">
+            <div><b>题目：</b> {{ q.stem }}</div>
+            <div>
+                你的答案：
+                {% if q.user_answer %}
+                    {% if q.type == 'multi' %}
+                        <b>{{ q.user_answer|join(', ') }}</b>
+                    {% elif q.type == 'judge' %}
+                        <b>{{ '√' if q.user_answer in ['正确', '√', '对', '是', 'yes', 'Y', 'y', 'True', 'true'] else '×' }}</b>
+                    {% else %}
+                        <b>{{ q.user_answer }}</b>
+                    {% endif %}
+                {% else %}
+                    <b>未作答</b>
+                {% endif %}
+            </div>
+            <div>
+                正确答案：
+                {% if q.type == 'judge' %}
+                    <b>{{ '√' if q.answer in ['正确', '√', '对', '是', 'yes', 'Y', 'y', 'True', 'true'] else '×' }}</b>
+                {% else %}
+                    <b>{{ q.answer }}</b>
+                {% endif %}
+                <br>
+                {% for opt in q.options %}
+                    {% if opt.label in q.answer %}
+                        {{ opt.label }}. {{ '√' if opt.text == '正确' else ('×' if opt.text == '错误' else opt.text) }}<br>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="result-status-minimal wrong">
+                <span class="icon">✘</span> <span class="text">错误</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div style="text-align:center; margin-top:32px;">
+        <a href="/quiz" class="btn" style="box-shadow:0 2px 8px rgba(255,77,79,0.12);padding:12px 38px; font-size:1.2rem; border-radius:8px; background:linear-gradient(90deg,#ff4d4f 60%,#ff7875 100%); color:#fff; font-weight:bold; text-decoration:none !important;">返回刷题</a>
+    </div>
+</body>
+</html> 

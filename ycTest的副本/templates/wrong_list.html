@@ -1,0 +1,65 @@
+{% extends 'quiz.html' %}
+{% block content %}
+<div class="mode-banner">最新20个错题记录</div>
+<div class="wrong-list">
+  {% for q in questions %}
+    <div class="question-block">
+      <div class="question-stem">{{ loop.index }}. {{ q.stem }}</div>
+      <div class="question-options">
+        {% if q.type == 'judge' %}
+          <div class="option">
+            <span class="option-label">A.</span> <span{% if user_answers.get(q.qid) == 'A' %} class="user-choice"{% endif %}>√</span>
+            {% if q.answer == 'A' %}<span class="correct-indicator">（正确答案）</span>{% endif %}
+          </div>
+          <div class="option">
+            <span class="option-label">B.</span> <span{% if user_answers.get(q.qid) == 'B' %} class="user-choice"{% endif %}>×</span>
+            {% if q.answer == 'B' %}<span class="correct-indicator">（正确答案）</span>{% endif %}
+          </div>
+        {% else %}
+          {% for opt in q.options %}
+            <div class="option">
+              <span class="option-label">{{ opt[0] }}.</span>
+              <span{% if user_answers.get(q.qid) and opt[0] in user_answers.get(q.qid) %} class="user-choice"{% endif %}>{{ opt[1] }}</span>
+              {% if q.answer and opt[0] in q.answer %}<span class="correct-indicator">（正确答案）</span>{% endif %}
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <div class="user-answer">你的选择：
+        {% if user_answers.get(q.qid) %}
+          {% if q.type == 'multi' %}
+            {{ user_answers.get(q.qid)|join(', ') }}
+          {% elif q.type == 'judge' %}
+            {{ '√' if user_answers.get(q.qid) == 'A' else '×' }}
+          {% else %}
+            {{ user_answers.get(q.qid) }}
+          {% endif %}
+        {% else %}
+          未作答
+        {% endif %}
+      </div>
+      <div class="correct-answer">正确答案：
+        {% if q.type == 'multi' %}
+          {{ q.answer|join(', ') if q.answer is iterable and q.answer is not string else q.answer }}
+        {% elif q.type == 'judge' %}
+          {{ '√' if q.answer == 'A' else '×' }}
+        {% else %}
+          {{ q.answer }}
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+<style>
+.mode-banner {margin: 20px auto 10px; text-align: center; font-size: 1.2em; color: #555;}
+.wrong-list {max-width: 700px; margin: 0 auto;}
+.question-block {background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #eee; margin: 20px 0; padding: 18px 20px;}
+.question-stem {font-weight: bold; margin-bottom: 10px;}
+.question-options {margin-bottom: 8px;}
+.option {margin: 2px 0;}
+.option-label {font-weight: bold; margin-right: 6px;}
+.user-choice {color: #1976d2; font-weight: bold;}
+.correct-indicator {color: #43a047; margin-left: 8px; font-size: 0.95em;}
+.user-answer, .correct-answer {margin-top: 4px; font-size: 0.97em;}
+</style>
+{% endblock %} 

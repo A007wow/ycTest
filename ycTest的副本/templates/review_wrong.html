@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>错题复习</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: #f6faff;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto 0 auto;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 32px rgba(45,140,240,0.10);
+            padding: 36px 36px 48px 36px;
+            position: relative;
+        }
+        .header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 36px;
+        }
+        .header-title {
+            flex: 1;
+            text-align: center;
+            color: #2196f3;
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        .header-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 18px;
+        }
+        .circle-progress-row {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 0;
+            position: static;
+        }
+        .circle-progress-container {
+            width: 140px;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 16px rgba(33,150,243,0.10);
+            position: relative;
+        }
+        .circle-progress {
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+        .circle-bg {
+            stroke: #e3f0ff;
+        }
+        .circle-bar {
+            stroke: #1769aa;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.6s cubic-bezier(.4,2,.6,1);
+        }
+        .circle-bar-wrong {
+            stroke: #ff4d4f;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.6s cubic-bezier(.4,2,.6,1);
+        }
+        .circle-progress-text {
+            position: absolute;
+            top: 0; left: 0; width: 140px; height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .circle-title {
+            color: #1769aa;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+        }
+        .circle-title-wrong {
+            color: #ff4d4f;
+        }
+        .circle-value {
+            color: #1769aa;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.10);
+        }
+        .circle-value-wrong {
+            color: #ff4d4f;
+        }
+        .quiz-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .btn-action {
+            padding: 8px 22px;
+            background: linear-gradient(90deg, #2196f3 60%, #1769aa 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.08rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(33,150,243,0.10);
+            transition: background 0.18s, transform 0.18s;
+        }
+        .btn-action:hover {
+            background: linear-gradient(90deg, #1769aa 60%, #2196f3 100%);
+            transform: translateY(-2px) scale(1.04);
+        }
+        .question { margin-bottom: 30px; }
+        .options { margin-top: 12px; }
+        .option-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 18px;
+            padding: 8px 0;
+        }
+        .option-label {
+            width: 32px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-left: 8px;
+        }
+        .option-text {
+            flex: 1;
+            font-size: 18px;
+            margin-left: 8px;
+        }
+        .options input[type="radio"], .options input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: #2d8cf0;
+        }
+        @media (max-width: 1100px) {
+            .container { padding: 18px 4vw 32px 4vw; }
+            .header-row { flex-direction: column; align-items: stretch; }
+            .header-right { flex-direction: row; justify-content: center; gap: 24px; margin: 0 auto 18px auto; }
+            .header-title { margin-bottom: 18px; }
+        }
+        .mode-banner {
+            text-align: center;
+            background: #fffbe6;
+            color: #faad14;
+            font-size: 1.15rem;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            padding: 10px 0;
+            letter-spacing: 1px;
+        }
+        .btn, .btn-action, .btn-history, .btn-wrong-list, .btn-seq, .btn-review, .btn-reset {
+            text-decoration: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1 class="header-title">错题复习</h1>
+            <div class="header-right">
+                <div class="circle-progress-row">
+                    <!-- 错题复习进度 -->
+                    <div class="circle-progress-container">
+                        <svg class="circle-progress" width="140" height="140">
+                            <circle class="circle-bg" cx="70" cy="70" r="62" stroke-width="12" fill="none"/>
+                            <circle class="circle-bar" cx="70" cy="70" r="62" stroke-width="12" fill="none"
+                                stroke-dasharray="{{ 2*3.1416*62 }}"
+                                stroke-dashoffset="{{ (1 - done_count/total_questions)|float * 2*3.1416*62 }}"
+                            />
+                        </svg>
+                        <div class="circle-progress-text">
+                            <div class="circle-title">错题复习进度</div>
+                            <div class="circle-value">{{ done_count }}/{{ total_questions }}</div>
+                        </div>
+                    </div>
+                    <!-- 剩余错题数 -->
+                    <div class="circle-progress-container">
+                        <svg class="circle-progress" width="140" height="140">
+                            <circle class="circle-bg" cx="70" cy="70" r="62" stroke-width="12" fill="none"/>
+                            <circle class="circle-bar-wrong" cx="70" cy="70" r="62" stroke-width="12" fill="none"
+                                stroke-dasharray="{{ 2*3.1416*62 }}"
+                                stroke-dashoffset="{{ (1 - correct_count/total_questions)|float * 2*3.1416*62 }}"
+                            />
+                        </svg>
+                        <div class="circle-progress-text">
+                            <div class="circle-title circle-title-wrong">剩余错题数</div>
+                            <div class="circle-value circle-value-wrong">{{ correct_count }}/{{ total_questions }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="quiz-actions">
+                    <a href="/quiz" class="btn btn-seq">顺序练习</a>
+                    <a href="/review_wrong" class="btn btn-review">复习错题</a>
+                    <form action="{{ url_for('reset') }}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-reset">从头刷过</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="mode-banner">当前为 <b>错题复习模式</b></div>
+        <form method="post" action="{{ url_for('submit') }}">
+            {% for q in questions %}
+            {% set qid = q.id %}
+            <div class="question">
+                <div><b>第{{ loop.index }}/{{ total }}题：</b> {{ q.stem }}</div>
+                <div class="options">
+                    {% if q.type == 'multi' %}
+                        {% for opt in q.options %}
+                        <label class="option-row">
+                            <input type="checkbox" name="q_{{ qid }}[]" value="{{ opt.label }}">
+                            <span class="option-label">{{ opt.label }}</span>
+                            <span class="option-text">{{ opt.text }}</span>
+                        </label>
+                        {% endfor %}
+                    {% elif q.type == 'judge' %}
+                        {% for opt in q.options %}
+                        <label class="option-row">
+                            <input type="radio" name="q_{{ qid }}" value="{{ '√' if opt.text == '正确' else '×' }}">
+                            <span class="option-label">{{ opt.label }}</span>
+                            <span class="option-text">{{ '√' if opt.text == '正确' else '×' }}</span>
+                        </label>
+                        {% endfor %}
+                    {% else %}
+                        {% for opt in q.options %}
+                        <label class="option-row">
+                            <input type="radio" name="q_{{ qid }}" value="{{ opt.label }}">
+                            <span class="option-label">{{ opt.label }}</span>
+                            <span class="option-text">{{ opt.text }}</span>
+                        </label>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            <button type="submit">提交</button>
+        </form>
+    </div>
+</body>
+</html> 

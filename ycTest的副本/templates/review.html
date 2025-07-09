@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>题目回顾</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .review-container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px #eee; padding: 32px; }
+        .question-stem { font-size: 1.2em; margin-bottom: 18px; font-weight: bold; }
+        .options-list { margin-bottom: 18px; }
+        .options-list label { margin-right: 32px; font-size: 1.1em; }
+        .answer-row { margin: 8px 0; font-size: 1.1em; }
+        .correct-box, .wrong-box { margin-top: 24px; }
+        .option-correct { color: #52c41a; font-weight: bold; }
+        .option-user { color: #1976d2; font-weight: bold; }
+        input[type=radio]:disabled:checked + span,
+        input[type=checkbox]:disabled:checked + span {
+            color: #1976d2;
+            font-weight: bold;
+        }
+        .result-status-minimal {
+            margin-top: 18px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            font-size: 1.35rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #52c41a;
+        }
+        .result-status-minimal.wrong {
+            color: #ff4d4f;
+        }
+        .result-status-minimal .icon {
+            font-size: 1.7rem;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="review-container">
+    <h2 style="text-align:center;color:#2196f3;font-size:2em;font-weight:700;">题目回顾</h2>
+    <div class="question-stem">
+        第{{ question_index }}题： {{ question.stem|safe }}
+    </div>
+    <form>
+        <div class="options-list">
+            {% if question.type == 'choice' or question.type == 'judge' %}
+                {% for opt in question.options %}
+                    <label>
+                        <input type="radio" name="q_{{ question.id }}" value="{{ opt.label }}" disabled>
+                        <span{% if opt.label in question.answer %} class="option-correct"{% endif %}>
+                            {{ opt.label }}. 
+                            {% if question.type == 'judge' %}
+                                {{ '√' if opt.text == '正确' else '×' }}
+                            {% else %}
+                                {{ opt.text }}
+                            {% endif %}
+                        </span>
+                    </label>
+                {% endfor %}
+            {% elif question.type == 'multi' %}
+                {% for opt in question.options %}
+                    <label>
+                        <input type="checkbox" name="q_{{ question.id }}[]" value="{{ opt.label }}" disabled>
+                        <span{% if opt.label in question.answer %} class="option-correct"{% endif %}>{{ opt.label }}. {{ opt.text }}</span>
+                    </label>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="answer-row">
+            你的答案：<b>
+                {% if question.type == 'multi' and user_answer %}
+                    {{ user_answer|join(', ') }}
+                {% elif question.type == 'judge' and user_answer %}
+                    {{ '√' if user_answer in ['正确', '√', '对', '是', 'yes', 'Y', 'y', 'True', 'true', 'A'] else '×' }}
+                {% elif user_answer %}
+                    {{ user_answer }}
+                {% else %}
+                    未作答
+                {% endif %}
+            </b>
+        </div>
+        <div class="answer-row">
+            正确答案：<b>
+                {% if question.type == 'multi' and question.answer %}
+                    {{ question.answer|join(', ') if question.answer is iterable and question.answer is not string else question.answer }}
+                {% elif question.type == 'judge' and question.answer %}
+                    {{ '√' if question.answer in ['正确', '√', '对', '是', 'yes', 'Y', 'y', 'True', 'true', 'A'] else '×' }}
+                {% elif question.answer %}
+                    {{ question.answer }}
+                {% else %}
+                    无
+                {% endif %}
+            </b>
+        </div>
+        <div class="result-status-minimal {% if correct %}right{% else %}wrong{% endif %}">
+            {% if correct %}
+                <span class="icon">✔</span> <span class="text">正确</span>
+            {% else %}
+                <span class="icon">✘</span> <span class="text">错误</span>
+            {% endif %}
+        </div>
+    </form>
+    <form action="{% if session.get('current_mode') == 'review_wrong' %}{{ url_for('result') }}?review_wrong_mode=1&id_list={{ id_list|join(',') }}{% else %}{{ url_for('result') }}?id_list={{ id_list|join(',') }}{% if quiz_token %}&quiz_token={{ quiz_token }}{% endif %}{% endif %}" method="get" style="text-align:center; margin-top:32px;">
+        <button type="submit" class="btn" style="background:#fff;border:2px solid #2196f3;color:#2196f3;padding:10px 32px;font-size:1.1em;border-radius:12px;cursor:pointer;">返回结果页</button>
+    </form>
+</div>
+</body>
+</html> 
