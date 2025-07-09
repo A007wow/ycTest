@@ -7,9 +7,12 @@ import sqlite3
 import json
 import uuid
 from flask_session import Session
+from dotenv import load_dotenv
+load_dotenv()
+
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # 用于 session
+app.secret_key = os.environ.get('SECRET_KEY', 'default_secret_key_please_change') 
 
 # Flask-Session 配置
 SESSION_FILE_DIR = os.path.join(os.path.dirname(__file__), 'flask_session')
